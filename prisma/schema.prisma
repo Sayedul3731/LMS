@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  courses   Course[] @relation("InstructorCourses")
+  enrollments Enrollment[]
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  instructor  User     @relation("InstructorCourses", fields: [instructorId], references: [id])
+  instructorId String
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  createdAt   DateTime @default(now())
+}
+
+model Lesson {
+  id       String @id @default(uuid())
+  title    String
+  content  String
+  order    Int
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
+}
+
+model Enrollment {
+  id        String @id @default(uuid())
+  student   User   @relation(fields: [studentId], references: [id])
+  studentId String
+  course    Course @relation(fields: [courseId], references: [id])
+  courseId  String
+  status    String
+  enrolledAt DateTime @default(now())
+
+  @@unique([studentId, courseId])
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
